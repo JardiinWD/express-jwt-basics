@@ -14,6 +14,11 @@ const morgan = require('morgan');
 app.use(morgan('dev'))
 // Requiring the 'connectDB' function from the 'db/connect' module
 const connectDB = require(`${__dirname}/db/connect`);
+// Requiring the tasks routes
+const mainRouter = require(`${__dirname}/routes/main`)
+// Custom Middlewares
+const notFoundMiddleware = require('./middleware/not-found');
+const errorHandlerMiddleware = require('./middleware/error-handler');
 
 
 // Check if the application is running in development environment
@@ -22,28 +27,21 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-// Custom Middlewares
-const notFoundMiddleware = require('./middleware/not-found');
-const errorHandlerMiddleware = require('./middleware/error-handler');
-
 // Express Middlewares
 app.use(express.static('./public'));
 app.use(express.json());
+
+// Routes
+app.use('/api/v1/express-jwt', mainRouter)
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
 
-// Routes
-
-// Setting the MongoDB URI
-const mongoDbUri = `mongodb+srv://${process.env.MONGO_DB_USERNAME}:${process.env.MONGO_DB_PASSWORD}@${process.env.MONGO_DB_CLUSTER}/${process.env.MONGO_DB_DATABASE}?retryWrites=true&w=majority`
 // Setting the server to listen on process.env.SERVER_PORT
 const port = process.env.SERVER_PORT || 3375
 
 // Function to start the server after connecting to the database
 const start = async () => {
   try {
-    // Connecting to the database
-    await connectDB(mongoDbUri);
     // Starting the Express app and listening on the specified port
     app.listen(port, () => {
       console.log(`App is currently running on port: ${port}`);
